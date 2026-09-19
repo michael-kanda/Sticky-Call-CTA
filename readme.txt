@@ -4,7 +4,7 @@ Tags:              call, sticky, mobile, cta, analytics
 Requires at least: 6.0
 Tested up to:      6.8
 Requires PHP:      7.4
-Stable tag:        1.1.0
+Stable tag:        1.2.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,17 @@ Menschen stammt: `event.isTrusted`, eine vorausgegangene echte Eingabe
 Mindestverweildauer. Zusaetzlich wird pro Seitenaufruf nur ein Event gesendet.
 Der tel:-Link funktioniert davon unabhaengig immer.
 
+= Eigene Klickzaehlung =
+
+Zusaetzlich zum GA4-Event zaehlt das Plugin Klicks in einer eigenen Tabelle,
+aggregiert nach Standort, Tag und Seiten-ID. Es werden keine Cookies gesetzt,
+keine IP-Adressen und keine Besucherkennungen gespeichert. Die Zahlen stehen
+direkt in der Standortliste, jeweils als Summe der letzten 30 Tage und
+insgesamt. Zeilen aelter als 400 Tage entfernt eine taegliche Aufgabe.
+
+Weil auch Besucher ohne Analytics-Einwilligung gezaehlt werden, liegen diese
+Werte in der Regel ueber denen in GA4.
+
 == Installation ==
 
 1. Plugin-Ordner nach `/wp-content/plugins/` laden oder das ZIP ueber
@@ -75,11 +86,22 @@ Bei aktiver Bot-Filterung wird ein Klick verworfen, der schneller als die
 eingestellte Mindestverweildauer erfolgt oder ohne vorherige echte Eingabe
 ausgeloest wurde. Zum Testen die Mindestverweildauer auf 0 setzen.
 
+= Warum weichen die Klicks in der Standortliste von GA4 ab? =
+
+Die eigene Zaehlung ist unabhaengig vom Consent und zaehlt daher auch
+Besucher, die Analytics ablehnen. Ausserdem filtert GA4 zusaetzlich eigene
+bekannte Bots heraus.
+
 = Der Button verdeckt den Cookie-Banner =
 
 Den z-index in den Einstellungen unter den Wert des Consent-Layers setzen.
 
 == Changelog ==
+
+= 1.2.0 =
+* Eigene, aggregierte Klickzaehlung je Standort mit Anzeige in der Standortliste.
+* REST-Endpunkt dsgn-scc/v1/click mit Ratenbegrenzung.
+* Taegliche Aufraeumaufgabe fuer alte Zaehlerzeilen.
 
 = 1.1.0 =
 * Pruefung auf echte Nutzerinteraktion vor dem Senden des GA4-Events.
@@ -89,6 +111,9 @@ Den z-index in den Einstellungen unter den Wert des Consent-Layers setzen.
 * Erste Version.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Legt eine eigene Datenbanktabelle fuer die Klickzaehlung an.
 
 = 1.1.0 =
 Neue Optionen zur Bot-Filterung des GA4-Events.

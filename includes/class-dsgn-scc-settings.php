@@ -131,7 +131,7 @@ class DSGN_SCC_Settings {
 			return $clean;
 		}
 
-		$checkboxes = array( 'enabled', 'show_number', 'show_location', 'offset_body', 'ga4_enabled', 'ga4_generate_lead', 'ga4_require_consent', 'ga4_human_only', 'ga4_once_per_view', 'delete_data' );
+		$checkboxes = array( 'enabled', 'show_number', 'show_location', 'offset_body', 'ga4_enabled', 'ga4_generate_lead', 'ga4_require_consent', 'ga4_human_only', 'ga4_once_per_view', 'stats_enabled', 'delete_data' );
 
 		foreach ( $checkboxes as $key ) {
 			$clean[ $key ] = empty( $input[ $key ] ) ? 0 : 1;
@@ -298,6 +298,7 @@ class DSGN_SCC_Settings {
 
 		$settings = dsgn_scc_get_settings();
 		$name     = DSGN_SCC_OPTION;
+		$stats    = ! empty( $settings['stats_enabled'] ) ? DSGN_SCC_Stats::get_summary( 30 ) : array();
 		?>
 		<div class="wrap dsgn-scc-settings">
 			<h1><?php echo esc_html__( 'Sticky Call CTA', 'dsgn-sticky-call' ); ?></h1>
@@ -360,6 +361,7 @@ class DSGN_SCC_Settings {
 							<th><?php echo esc_html__( 'Bezeichnung', 'dsgn-sticky-call' ); ?></th>
 							<th><?php echo esc_html__( 'Telefonnummer', 'dsgn-sticky-call' ); ?></th>
 							<th><?php echo esc_html__( 'GA4-Label (optional)', 'dsgn-sticky-call' ); ?></th>
+							<th class="dsgn-scc-col-stats"><?php echo esc_html__( 'Klicks', 'dsgn-sticky-call' ); ?></th>
 							<th class="dsgn-scc-col-action"></th>
 						</tr>
 					</thead>
@@ -381,6 +383,26 @@ class DSGN_SCC_Settings {
 								</td>
 								<td>
 									<input type="text" name="<?php echo esc_attr( $name ); ?>[locations][<?php echo absint( $index ); ?>][ga_label]" value="<?php echo esc_attr( $location['ga_label'] ); ?>" placeholder="<?php echo esc_attr__( 'Standard: Bezeichnung', 'dsgn-sticky-call' ); ?>" />
+								</td>
+								<td class="dsgn-scc-col-stats">
+									<?php
+									if ( empty( $settings['stats_enabled'] ) ) {
+										echo '<span class="dsgn-scc-stat-off">' . esc_html__( 'aus', 'dsgn-sticky-call' ) . '</span>';
+									} else {
+										$recent = isset( $stats[ $location['id'] ] ) ? $stats[ $location['id'] ]['recent'] : 0;
+										$total  = isset( $stats[ $location['id'] ] ) ? $stats[ $location['id'] ]['total'] : 0;
+										?>
+										<strong class="dsgn-scc-stat-recent"><?php echo esc_html( number_format_i18n( $recent ) ); ?></strong>
+										<span class="dsgn-scc-stat-hint"><?php echo esc_html__( 'in 30 Tagen', 'dsgn-sticky-call' ); ?></span>
+										<span class="dsgn-scc-stat-hint">
+											<?php
+											/* translators: %s: Gesamtzahl der Klicks. */
+											printf( esc_html__( '%s gesamt', 'dsgn-sticky-call' ), esc_html( number_format_i18n( $total ) ) );
+											?>
+										</span>
+										<?php
+									}
+									?>
 								</td>
 								<td class="dsgn-scc-col-action">
 									<button type="button" class="button-link delete dsgn-scc-remove"><?php echo esc_html__( 'Entfernen', 'dsgn-sticky-call' ); ?></button>
@@ -540,6 +562,20 @@ class DSGN_SCC_Settings {
 					</tr>
 				</table>
 
+				<h2><?php echo esc_html__( 'Eigene Klickzählung', 'dsgn-sticky-call' ); ?></h2>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php echo esc_html__( 'Zählung', 'dsgn-sticky-call' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="<?php echo esc_attr( $name ); ?>[stats_enabled]" value="1" <?php checked( $settings['stats_enabled'], 1 ); ?> />
+								<?php echo esc_html__( 'Klicks je Standort in der eigenen Datenbank zählen', 'dsgn-sticky-call' ); ?>
+							</label>
+							<p class="description"><?php echo esc_html__( 'Gespeichert werden nur Standort, Tag, Seiten-ID und eine Anzahl – kein Cookie, keine IP, keine Kennung des Besuchers. Die Zahlen liegen daher meist über denen in GA4, weil auch Besucher ohne Analytics-Einwilligung mitgezählt werden. Es gelten dieselben Prüfungen auf echte Interaktionen wie beim GA4-Event.', 'dsgn-sticky-call' ); ?></p>
+						</td>
+					</tr>
+				</table>
+
 				<h2><?php echo esc_html__( 'Deinstallation', 'dsgn-sticky-call' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
@@ -566,6 +602,9 @@ class DSGN_SCC_Settings {
 						</td>
 						<td>
 							<input type="text" name="<?php echo esc_attr( $name ); ?>[locations][__INDEX__][ga_label]" value="" placeholder="<?php echo esc_attr__( 'Standard: Bezeichnung', 'dsgn-sticky-call' ); ?>" />
+						</td>
+						<td class="dsgn-scc-col-stats">
+							<span class="dsgn-scc-stat-hint"><?php echo esc_html__( 'nach dem Speichern', 'dsgn-sticky-call' ); ?></span>
 						</td>
 						<td class="dsgn-scc-col-action">
 							<button type="button" class="button-link delete dsgn-scc-remove"><?php echo esc_html__( 'Entfernen', 'dsgn-sticky-call' ); ?></button>

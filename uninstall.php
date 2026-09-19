@@ -25,8 +25,16 @@ function dsgn_scc_uninstall_site() {
 		return;
 	}
 
+	global $wpdb;
+
 	delete_option( 'dsgn_scc_settings' );
+	delete_option( 'dsgn_scc_db_version' );
 	delete_post_meta_by_key( '_dsgn_scc_location' );
+
+	$table = $wpdb->prefix . 'dsgn_scc_clicks';
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- eigene Tabelle, Name aus $wpdb->prefix.
+	$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 }
 
 if ( is_multisite() ) {

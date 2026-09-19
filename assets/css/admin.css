@@ -15,6 +15,23 @@
 	width: 100%;
 }
 
+.dsgn-scc-settings .dsgn-scc-col-stats {
+	width: 130px;
+	line-height: 1.4;
+}
+
+.dsgn-scc-settings .dsgn-scc-stat-recent {
+	display: block;
+	font-size: 18px;
+}
+
+.dsgn-scc-settings .dsgn-scc-stat-hint,
+.dsgn-scc-settings .dsgn-scc-stat-off {
+	display: block;
+	color: #646970;
+	font-size: 12px;
+}
+
 .dsgn-scc-settings .dsgn-scc-col-action {
 	width: 90px;
 	text-align: right;

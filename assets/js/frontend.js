@@ -118,20 +118,46 @@
 		window.dataLayer.push( payload );
 	}
 
-	function track( event ) {
+	/**
+	 * Aggregierten Zaehler im Plugin erhoehen.
+	 *
+	 * Uebertragen werden nur Standort-ID und Seiten-ID. Die Anfrage laeuft
+	 * bewusst ohne Cookies, damit keine Sitzung mitgeschickt wird.
+	 */
+	function countClick() {
+		if ( ! config.stats || ! config.statsUrl ) {
+			return;
+		}
+
+		var body = JSON.stringify( {
+			location_id: config.locationId || '',
+			post_id: config.postId || 0
+		} );
+
+		if ( window.navigator.sendBeacon ) {
+			try {
+				window.navigator.sendBeacon( config.statsUrl, new Blob( [ body ], { type: 'application/json' } ) );
+				return;
+			} catch ( error ) {
+				// Faellt unten auf fetch zurueck.
+			}
+		}
+
+		if ( window.fetch ) {
+			window.fetch( config.statsUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: body,
+				keepalive: true,
+				credentials: 'omit'
+			} ).catch( function () {} );
+		}
+	}
+
+	function sendGa4() {
 		if ( ! config.track || ! consentGranted() ) {
 			return;
 		}
-
-		if ( config.oncePerView && alreadySent ) {
-			return;
-		}
-
-		if ( ! looksHuman( event ) || ! dwellReached() ) {
-			return;
-		}
-
-		alreadySent = true;
 
 		var params = {
 			location_label: config.locationLabel || '',
@@ -148,7 +174,29 @@
 		}
 	}
 
+	/**
+	 * Ein Klick, zwei Ziele: die eigene Zaehlung laeuft unabhaengig vom
+	 * Consent, weil sie rein aggregiert ist. Die Plausibilitaetspruefungen
+	 * gelten fuer beide, damit die Zahlen vergleichbar bleiben.
+	 *
+	 * @param {Event} event Klick-Event.
+	 */
+	function handleClick( event ) {
+		if ( config.oncePerView && alreadySent ) {
+			return;
+		}
+
+		if ( ! looksHuman( event ) || ! dwellReached() ) {
+			return;
+		}
+
+		alreadySent = true;
+
+		countClick();
+		sendGa4();
+	}
+
 	if ( link ) {
-		link.addEventListener( 'click', track );
+		link.addEventListener( 'click', handleClick );
 	}
 }() );

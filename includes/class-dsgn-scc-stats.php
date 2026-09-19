@@ -219,14 +219,11 @@ class DSGN_SCC_Stats {
 	public static function record( $location_id, $post_id = 0 ) {
 		global $wpdb;
 
-		$table = self::table_name();
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- eigene Tabelle, Zaehler-Update ohne Cache-Nutzen.
 		$wpdb->query(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellenname stammt aus $wpdb->prefix.
-				"INSERT INTO {$table} ( location_id, stat_day, post_id, clicks ) VALUES ( %s, %s, %d, 1 )
-				ON DUPLICATE KEY UPDATE clicks = clicks + 1",
+				'INSERT INTO %i ( location_id, stat_day, post_id, clicks ) VALUES ( %s, %s, %d, 1 ) ON DUPLICATE KEY UPDATE clicks = clicks + 1',
+				self::table_name(),
 				$location_id,
 				current_time( 'Y-m-d' ),
 				$post_id
@@ -243,17 +240,14 @@ class DSGN_SCC_Stats {
 	public static function get_summary( $days = 30 ) {
 		global $wpdb;
 
-		$table = self::table_name();
 		$since = gmdate( 'Y-m-d', time() - ( absint( $days ) * DAY_IN_SECONDS ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- eigene Tabelle, Auswertung nur im Admin.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellenname stammt aus $wpdb->prefix.
-				"SELECT location_id, SUM( clicks ) AS total, SUM( CASE WHEN stat_day >= %s THEN clicks ELSE 0 END ) AS recent
-				FROM {$table}
-				GROUP BY location_id",
-				$since
+				'SELECT location_id, SUM( clicks ) AS total, SUM( CASE WHEN stat_day >= %s THEN clicks ELSE 0 END ) AS recent FROM %i GROUP BY location_id',
+				$since,
+				self::table_name()
 			),
 			ARRAY_A
 		);
@@ -293,14 +287,13 @@ class DSGN_SCC_Stats {
 			return;
 		}
 
-		$table  = self::table_name();
 		$cutoff = gmdate( 'Y-m-d', time() - ( $days * DAY_IN_SECONDS ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- eigene Tabelle, geplante Aufraeumaufgabe.
 		$wpdb->query(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellenname stammt aus $wpdb->prefix.
-				"DELETE FROM {$table} WHERE stat_day < %s",
+				'DELETE FROM %i WHERE stat_day < %s',
+				self::table_name(),
 				$cutoff
 			)
 		);

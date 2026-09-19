@@ -1,122 +1,130 @@
 === Sticky Call CTA ===
 Contributors:      michaelkanda
 Tags:              call, sticky, mobile, cta, analytics
-Requires at least: 6.0
-Tested up to:      6.8
+Requires at least: 6.5
+Tested up to:      7.1
 Requires PHP:      7.4
-Stable tag:        1.2.0
+Stable tag:        1.2.1
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Mobiler Sticky-Anrufbutton mit Telefonnummern je Standort, Zuordnung per Seite oder URL-Regel und GA4-Event beim Klick.
+Sticky mobile call button with per-location phone numbers, page or URL based assignment and a GA4 event on click.
 
 == Description ==
 
-Zeigt auf mobilen Bildschirmbreiten einen fixierten Anrufbutton am unteren Rand.
+Displays a fixed call button at the bottom of the screen on mobile viewport
+widths. The admin interface of this plugin is in German.
 
-Die Nummern werden zentral als Standorte gepflegt. Jede Seite kann einen dieser
-Standorte auswaehlen, zusaetzlich lassen sich URL-Regeln mit Platzhalter
-anlegen, sodass neue Landingpages in einem Pfad automatisch die richtige Nummer
-erhalten.
+Phone numbers are maintained as a central list of locations. Every page can
+pick one of those locations, and URL rules with a wildcard can assign numbers
+automatically, so new landing pages below a given path get the correct number
+without any manual step.
 
-Reihenfolge der Zuordnung:
+Assignment order:
 
-1. Auswahl in der Metabox der Seite
-2. erste passende URL-Regel
-3. Standardstandort
+1. the selection in the meta box of the page
+2. the first matching URL rule
+3. the default location
 
-Die Sichtbarkeit wird ausschliesslich ueber CSS gesteuert, nicht ueber
-serverseitige Geraeteerkennung. Das Markup ist damit fuer alle Geraete gleich
-und vertraegt sich mit Full-Page-Caching.
+Visibility is handled entirely in CSS, not by server side device detection.
+The markup is therefore identical for every device and works with full page
+caching.
 
 = Tracking =
 
-Beim Klick wird ein GA4-Event gesendet, standardmaessig `phone_call_click` mit
-den Parametern `location_label`, `location_id`, `phone_number`, `page_path` und
-`link_url`. Optional wird zusaetzlich das empfohlene Event `generate_lead`
-gemeldet.
+On click the plugin sends a GA4 event, by default `phone_call_click` with the
+parameters `location_label`, `location_id`, `phone_number`, `page_path` and
+`link_url`. The recommended event `generate_lead` can be sent in addition.
 
-Das Plugin sendet die Daten nicht selbst an einen externen Dienst, sondern
-uebergibt sie an das bereits auf der Seite vorhandene Google-Tag
-(`gtag()`, z. B. ueber Site Kit) beziehungsweise an den `dataLayer` fuer den
-Google Tag Manager. Ob und wie diese Daten an Google uebertragen werden,
-bestimmt die vorhandene Analytics-Konfiguration der Website. Optional kann das
-Event von der Variable `window.dsgnSccConsentGranted` abhaengig gemacht werden.
+The plugin does not contact any external service by itself. It hands the data
+to the Google tag already present on the site, either `gtag()` as provided by
+Site Kit or gtag.js, or the `dataLayer` for Google Tag Manager. Whether and how
+that data reaches Google is decided by the existing analytics configuration of
+the site. The event can optionally be made dependent on the JavaScript variable
+`window.dsgnSccConsentGranted`.
 
-= Bot-Filterung =
+= Filtering automated clicks =
 
-Vor dem Senden prueft das Plugin optional, ob der Klick plausibel von einem
-Menschen stammt: `event.isTrusted`, eine vorausgegangene echte Eingabe
-(Tippen, Scrollen, Tastendruck), `navigator.webdriver` sowie eine
-Mindestverweildauer. Zusaetzlich wird pro Seitenaufruf nur ein Event gesendet.
-Der tel:-Link funktioniert davon unabhaengig immer.
+Before sending, the plugin optionally checks whether the click plausibly comes
+from a human: `event.isTrusted`, a preceding real input such as a tap, scroll
+or key press, `navigator.webdriver` and a minimum dwell time. In addition only
+one event per page view is sent. The tel: link always works regardless of these
+checks.
 
-= Eigene Klickzaehlung =
+= Built in click counter =
 
-Zusaetzlich zum GA4-Event zaehlt das Plugin Klicks in einer eigenen Tabelle,
-aggregiert nach Standort, Tag und Seiten-ID. Es werden keine Cookies gesetzt,
-keine IP-Adressen und keine Besucherkennungen gespeichert. Die Zahlen stehen
-direkt in der Standortliste, jeweils als Summe der letzten 30 Tage und
-insgesamt. Zeilen aelter als 400 Tage entfernt eine taegliche Aufgabe.
+Besides the GA4 event the plugin counts clicks in its own database table,
+aggregated by location, day and page ID. No cookies are set and no IP addresses
+or visitor identifiers are stored. The numbers are shown in the location list
+as the sum of the last 30 days and as a total. A daily task removes rows older
+than 400 days.
 
-Weil auch Besucher ohne Analytics-Einwilligung gezaehlt werden, liegen diese
-Werte in der Regel ueber denen in GA4.
+Because visitors without analytics consent are counted as well, these numbers
+are usually higher than the ones in GA4.
 
 == Installation ==
 
-1. Plugin-Ordner nach `/wp-content/plugins/` laden oder das ZIP ueber
-   Plugins > Installieren hochladen.
-2. Plugin aktivieren.
-3. Unter Einstellungen > Sticky Call CTA mindestens einen Standort anlegen.
+1. Upload the plugin folder to `/wp-content/plugins/` or install the ZIP file
+   via Plugins > Add New.
+2. Activate the plugin.
+3. Add at least one location under Settings > Sticky Call CTA.
 
 == Frequently Asked Questions ==
 
-= Warum erscheint der Button am Desktop nicht? =
+= Why is the button not visible on desktop? =
 
-Er wird nur bis zum eingestellten Breakpoint angezeigt, standardmaessig 768 px.
+It is only shown up to the configured breakpoint, 768 px by default.
 
-= Die Nummer stimmt auf einer Seite nicht =
+= The number is wrong on one page =
 
-Zuerst die Metabox der Seite pruefen, danach die URL-Regeln. Die erste passende
-Regel gewinnt, die Auswahl an der Seite hat Vorrang vor allen Regeln.
+Check the meta box of that page first, then the URL rules. The first matching
+rule wins, and the selection on the page takes precedence over every rule.
 
-= Warum fehlt ein Event, obwohl ich geklickt habe? =
+= Why is an event missing although I clicked? =
 
-Bei aktiver Bot-Filterung wird ein Klick verworfen, der schneller als die
-eingestellte Mindestverweildauer erfolgt oder ohne vorherige echte Eingabe
-ausgeloest wurde. Zum Testen die Mindestverweildauer auf 0 setzen.
+With the automated click filter enabled, a click is discarded when it happens
+faster than the configured minimum dwell time or without a preceding real
+input. Set the minimum dwell time to 0 while testing.
 
-= Warum weichen die Klicks in der Standortliste von GA4 ab? =
+= Why do the clicks in the location list differ from GA4? =
 
-Die eigene Zaehlung ist unabhaengig vom Consent und zaehlt daher auch
-Besucher, die Analytics ablehnen. Ausserdem filtert GA4 zusaetzlich eigene
-bekannte Bots heraus.
+The built in counter does not depend on consent and therefore also counts
+visitors who decline analytics. GA4 additionally filters its own list of known
+bots.
 
-= Der Button verdeckt den Cookie-Banner =
+= The button covers the cookie banner =
 
-Den z-index in den Einstellungen unter den Wert des Consent-Layers setzen.
+Set the z-index in the settings below the value used by the consent layer.
 
 == Changelog ==
 
+= 1.2.1 =
+* Table names in all queries now use the %i placeholder of $wpdb->prepare().
+* Removed Domain Path header and load_plugin_textdomain().
+* readme.txt rewritten in English, minimum WordPress version raised to 6.5.
+
 = 1.2.0 =
-* Eigene, aggregierte Klickzaehlung je Standort mit Anzeige in der Standortliste.
-* REST-Endpunkt dsgn-scc/v1/click mit Ratenbegrenzung.
-* Taegliche Aufraeumaufgabe fuer alte Zaehlerzeilen.
+* Aggregated click counter per location, shown in the location list.
+* REST endpoint dsgn-scc/v1/click with rate limiting.
+* Daily cleanup task for old counter rows.
 
 = 1.1.0 =
-* Pruefung auf echte Nutzerinteraktion vor dem Senden des GA4-Events.
-* Mindestverweildauer und Entprellung pro Seitenaufruf.
+* Check for genuine user interaction before sending the GA4 event.
+* Minimum dwell time and one event per page view.
 
 = 1.0.0 =
-* Erste Version.
+* First release.
 
 == Upgrade Notice ==
 
+= 1.2.1 =
+Requires WordPress 6.5 or newer.
+
 = 1.2.0 =
-Legt eine eigene Datenbanktabelle fuer die Klickzaehlung an.
+Creates a database table for the click counter.
 
 = 1.1.0 =
-Neue Optionen zur Bot-Filterung des GA4-Events.
+New options for filtering automated clicks.
 
 = 1.0.0 =
-Erste Version.
+First release.

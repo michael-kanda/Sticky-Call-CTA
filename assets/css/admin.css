@@ -1,0 +1,29 @@
+/**
+ * Sticky Call CTA – Einstellungsseite
+ */
+
+.dsgn-scc-settings .dsgn-scc-repeater {
+	max-width: 900px;
+	margin-bottom: 10px;
+}
+
+.dsgn-scc-settings .dsgn-scc-repeater th {
+	font-weight: 600;
+}
+
+.dsgn-scc-settings .dsgn-scc-repeater input[type="text"] {
+	width: 100%;
+}
+
+.dsgn-scc-settings .dsgn-scc-col-action {
+	width: 90px;
+	text-align: right;
+}
+
+.dsgn-scc-settings .dsgn-scc-repeater .description {
+	margin: 4px 0 0;
+}
+
+.dsgn-scc-settings h2 {
+	margin-top: 32px;
+}

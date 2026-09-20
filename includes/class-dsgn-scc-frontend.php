@@ -123,19 +123,22 @@ class DSGN_SCC_Frontend {
 		$label    = $settings['label'];
 		$number   = $location['number'];
 
-		$aria_parts = array( $label );
+		$aria_prefix = $label;
 
 		if ( '' !== $location['label'] ) {
-			$aria_parts[] = $location['label'];
+			$aria_prefix .= ' – ' . $location['label'];
 		}
 
-		$aria_parts[] = $number;
-		$aria_label   = implode( ' – ', array_filter( $aria_parts ) );
+		$show_location = ! empty( $settings['show_location'] ) && '' !== $location['label'];
+		$show_number   = ! empty( $settings['show_number'] );
 		?>
 		<div class="dsgn-scc" id="dsgn-scc" data-location="<?php echo esc_attr( $location['id'] ); ?>">
 			<a class="dsgn-scc__link"
 				href="<?php echo esc_url( 'tel:' . $location['tel'], array( 'tel' ) ); ?>"
-				aria-label="<?php echo esc_attr( $aria_label ); ?>">
+				data-dsgn-scc-tel="<?php echo esc_attr( $location['tel'] ); ?>"
+				data-dsgn-scc-location="<?php echo esc_attr( $location['id'] ); ?>"
+				data-dsgn-scc-aria-prefix="<?php echo esc_attr( $aria_prefix ); ?>"
+				aria-label="<?php echo esc_attr( trim( $aria_prefix . ' – ' . $number ) ); ?>">
 				<span class="dsgn-scc__icon" aria-hidden="true">
 					<svg width="22" height="22" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
 						<path fill="currentColor" d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C11.1 21 3 12.9 3 3c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z" />
@@ -143,21 +146,24 @@ class DSGN_SCC_Frontend {
 				</span>
 				<span class="dsgn-scc__text">
 					<span class="dsgn-scc__label"><?php echo esc_html( $label ); ?></span>
-					<?php if ( ! empty( $settings['show_number'] ) || ! empty( $settings['show_location'] ) ) : ?>
+					<?php if ( $show_location || $show_number ) : ?>
 						<span class="dsgn-scc__meta">
-							<?php
-							$meta = array();
-
-							if ( ! empty( $settings['show_location'] ) && '' !== $location['label'] ) {
-								$meta[] = $location['label'];
-							}
-
-							if ( ! empty( $settings['show_number'] ) ) {
-								$meta[] = $number;
-							}
-
-							echo esc_html( implode( ' · ', $meta ) );
-							?>
+							<?php if ( $show_location ) : ?>
+								<span class="dsgn-scc__location"><?php echo esc_html( $location['label'] ); ?></span>
+							<?php endif; ?>
+							<?php if ( $show_location && $show_number ) : ?>
+								<span class="dsgn-scc__separator" aria-hidden="true"> · </span>
+							<?php endif; ?>
+							<?php if ( $show_number ) : ?>
+								<?php
+								/*
+								 * Eigenes Element mit stabilem Attribut, damit Skripte fuer
+								 * dynamische Rufnummernzuweisung genau hier tauschen koennen,
+								 * ohne den Standortnamen mit zu erwischen.
+								 */
+								?>
+								<span class="dsgn-scc__number" data-dsgn-scc-swap="number"><?php echo esc_html( $number ); ?></span>
+							<?php endif; ?>
 						</span>
 					<?php endif; ?>
 				</span>

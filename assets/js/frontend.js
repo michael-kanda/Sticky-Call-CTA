@@ -20,6 +20,7 @@
 	}
 
 	var link = root.querySelector( '.dsgn-scc__link' );
+	var numberElement = root.querySelector( '[data-dsgn-scc-swap="number"]' );
 	var startedAt = Date.now();
 	var hadInteraction = false;
 	var alreadySent = false;
@@ -46,6 +47,52 @@
 
 		if ( 'ResizeObserver' in window ) {
 			new window.ResizeObserver( updateHeight ).observe( root );
+		}
+	}
+
+	/**
+	 * Aktuell verlinkte Nummer.
+	 *
+	 * Bewusst aus dem href gelesen statt aus der Konfiguration: Skripte fuer
+	 * dynamische Rufnummernzuweisung tauschen den Link nach dem Laden aus,
+	 * gemeldet werden muss die Nummer, die tatsaechlich gewaehlt wurde.
+	 *
+	 * @return {string} Telefonnummer ohne tel:-Praefix.
+	 */
+	function currentNumber() {
+		var href = link ? link.getAttribute( 'href' ) || '' : '';
+
+		return href.replace( /^tel:/i, '' ) || ( config.phoneNumber || '' );
+	}
+
+	/**
+	 * aria-label an eine getauschte Nummer angleichen.
+	 *
+	 * Ohne das bliebe nach einem Nummerntausch die alte Nummer im
+	 * Screenreader stehen, waehrend sichtbar die neue steht.
+	 */
+	function syncAriaLabel() {
+		if ( ! link ) {
+			return;
+		}
+
+		var prefix = link.getAttribute( 'data-dsgn-scc-aria-prefix' ) || '';
+		var shown = numberElement ? numberElement.textContent.trim() : currentNumber();
+
+		if ( ! shown ) {
+			return;
+		}
+
+		link.setAttribute( 'aria-label', prefix ? prefix + ' – ' + shown : shown );
+	}
+
+	if ( link && 'MutationObserver' in window ) {
+		var observer = new window.MutationObserver( syncAriaLabel );
+
+		observer.observe( link, { attributes: true, attributeFilter: [ 'href' ] } );
+
+		if ( numberElement ) {
+			observer.observe( numberElement, { childList: true, characterData: true, subtree: true } );
 		}
 	}
 
@@ -162,7 +209,7 @@
 		var params = {
 			location_label: config.locationLabel || '',
 			location_id: config.locationId || '',
-			phone_number: config.phoneNumber || '',
+			phone_number: currentNumber(),
 			page_path: window.location.pathname,
 			link_url: link ? link.getAttribute( 'href' ) : ''
 		};

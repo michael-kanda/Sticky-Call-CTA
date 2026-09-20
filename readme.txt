@@ -4,7 +4,7 @@ Tags:              call, sticky, mobile, cta, analytics
 Requires at least: 6.5
 Tested up to:      7.1
 Requires PHP:      7.4
-Stable tag:        1.2.1
+Stable tag:        1.3.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,15 @@ than 400 days.
 Because visitors without analytics consent are counted as well, these numbers
 are usually higher than the ones in GA4.
 
+= Dynamic number insertion =
+
+The button is prepared for third party call tracking scripts. The link carries
+`data-dsgn-scc-tel` and `data-dsgn-scc-location`, and the visible number sits in
+its own element marked with `data-dsgn-scc-swap="number"`, separated from the
+location name. When a script replaces the link or that element, the plugin
+updates the aria-label accordingly and reports the number that was actually
+dialled in the GA4 event.
+
 == Installation ==
 
 1. Upload the plugin folder to `/wp-content/plugins/` or install the ZIP file
@@ -98,6 +107,11 @@ Set the z-index in the settings below the value used by the consent layer.
 
 == Changelog ==
 
+= 1.3.0 =
+* Markup prepared for dynamic number insertion scripts.
+* The GA4 event now reports the number currently linked instead of the stored one.
+* aria-label is kept in sync when the number is replaced.
+
 = 1.2.1 =
 * Table names in all queries now use the %i placeholder of $wpdb->prepare().
 * Removed Domain Path header and load_plugin_textdomain().
@@ -116,6 +130,9 @@ Set the z-index in the settings below the value used by the consent layer.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Prepares the button for call tracking scripts.
 
 = 1.2.1 =
 Requires WordPress 6.5 or newer.

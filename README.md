@@ -92,6 +92,28 @@ erhöht nur einen Zähler, liest nichts aus und prüft die Standort-ID. Die
 Ratenbegrenzung nutzt einen gesalzenen Hash der IP in einem Transient; die
 Adresse selbst wird nicht gespeichert.
 
+## Call Tracking / dynamische Rufnummern
+
+Der Button ist für Skripte zur dynamischen Rufnummernzuweisung vorbereitet:
+
+| Ansatzpunkt | Bedeutung |
+| --- | --- |
+| `a.dsgn-scc__link[data-dsgn-scc-tel]` | der Link, `href` und Attribut enthalten die hinterlegte Nummer |
+| `[data-dsgn-scc-swap="number"]` | die sichtbare Nummer, in einem eigenen Element ohne Standortnamen |
+| `data-dsgn-scc-location` | Standort-ID, falls der Anbieter je Standort einen eigenen Pool nutzt |
+
+Tauscht ein Skript `href` oder die sichtbare Nummer, zieht das Plugin das
+`aria-label` nach und meldet an GA4 die tatsächlich verlinkte Nummer, nicht die
+in der Datenbank hinterlegte.
+
+**Statisches Call Tracking** braucht keinen Code: die Weiterleitungsnummer
+einfach als Nummer des Standorts eintragen.
+
+**Nicht vergessen:** Echte Nummer in Impressum, Schema-Markup und Google-
+Unternehmensprofil belassen, sonst leidet die NAP-Konsistenz. Und: Eine
+Nummer je Besucher ist ein Personenbezug und damit einwilligungspflichtig,
+eine feste Nummer je Standort oder Landingpage nicht.
+
 ## Filter für Entwickler
 
 | Filter | Zweck | Standard |

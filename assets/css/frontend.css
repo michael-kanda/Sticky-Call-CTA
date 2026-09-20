@@ -58,6 +58,12 @@
 	align-items: center;
 }
 
+.dsgn-scc__number,
+.dsgn-scc__location,
+.dsgn-scc__separator {
+	white-space: nowrap;
+}
+
 .dsgn-scc__meta {
 	font-size: 14px;
 	font-weight: 400;

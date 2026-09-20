@@ -3,7 +3,7 @@
  * Plugin Name:       Sticky Call CTA
  * Plugin URI:        https://designare.at/
  * Description:       Mobiler Sticky-CTA-Button mit Telefonnummer. Nummern werden zentral als Standorte gepflegt und per Seite oder URL-Regel zugeordnet. Klicks werden als GA4-Event gemeldet.
- * Version:           1.2.1
+ * Version:           1.3.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Michael Kanda
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DSGN_SCC_VERSION', '1.2.1' );
+define( 'DSGN_SCC_VERSION', '1.3.0' );
 define( 'DSGN_SCC_FILE', __FILE__ );
 define( 'DSGN_SCC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'DSGN_SCC_URL', plugin_dir_url( __FILE__ ) );

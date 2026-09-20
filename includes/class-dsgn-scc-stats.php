@@ -68,11 +68,32 @@ class DSGN_SCC_Stats {
 	 * @return void
 	 */
 	public static function maybe_install() {
-		if ( get_option( self::DB_VERSION_OPTION ) === self::DB_VERSION ) {
+		/*
+		 * Nicht nur die Options-Version pruefen: fehlt die Tabelle, obwohl die
+		 * Option gesetzt ist, wuerde sonst nie wieder ein Versuch unternommen
+		 * und jede Zaehlung liefe still ins Leere.
+		 */
+		if ( get_option( self::DB_VERSION_OPTION ) === self::DB_VERSION && self::table_exists() ) {
 			return;
 		}
 
 		self::install();
+	}
+
+	/**
+	 * Prueft, ob die Zaehlertabelle vorhanden ist.
+	 *
+	 * @return bool
+	 */
+	public static function table_exists() {
+		global $wpdb;
+
+		$table = self::table_name();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Existenzpruefung der eigenen Tabelle.
+		$found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) );
+
+		return $found === $table;
 	}
 
 	/**

@@ -21,7 +21,12 @@ class DSGN_SCC_Frontend {
 	 */
 	public static function init() {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
-		add_action( 'wp_footer', array( __CLASS__, 'render' ), 100 );
+		/*
+		 * Prioritaet 5: wp_print_footer_scripts haengt an wp_footer mit 20.
+		 * Der Button muss vorher im DOM stehen, sonst findet das Skript ihn
+		 * nicht. Das Skript wartet zusaetzlich auf DOMContentLoaded.
+		 */
+		add_action( 'wp_footer', array( __CLASS__, 'render' ), 5 );
 	}
 
 	/**
@@ -55,25 +60,32 @@ class DSGN_SCC_Frontend {
 			true
 		);
 
-		wp_localize_script(
+		/*
+		 * Bewusst nicht wp_localize_script(): das wandelt alle Werte in
+		 * Strings, und "0" ist in JavaScript wahr. Abgeschaltete Optionen
+		 * haetten sich dadurch wie eingeschaltete verhalten.
+		 */
+		$data = array(
+			'track'          => ! empty( $settings['ga4_enabled'] ),
+			'event'          => $settings['ga4_event'],
+			'generateLead'   => ! empty( $settings['ga4_generate_lead'] ),
+			'requireConsent' => ! empty( $settings['ga4_require_consent'] ),
+			'humanOnly'      => ! empty( $settings['ga4_human_only'] ),
+			'minDwell'       => absint( $settings['ga4_min_dwell'] ),
+			'oncePerView'    => ! empty( $settings['ga4_once_per_view'] ),
+			'stats'          => ! empty( $settings['stats_enabled'] ),
+			'statsUrl'       => esc_url_raw( rest_url( 'dsgn-scc/v1/click' ) ),
+			'postId'         => (int) get_queried_object_id(),
+			'offsetBody'     => ! empty( $settings['offset_body'] ),
+			'locationId'     => $location['id'],
+			'locationLabel'  => $location['ga_label'],
+			'phoneNumber'    => $location['tel'],
+		);
+
+		wp_add_inline_script(
 			'dsgn-scc-frontend',
-			'dsgnSccData',
-			array(
-				'track'          => ! empty( $settings['ga4_enabled'] ) ? 1 : 0,
-				'event'          => $settings['ga4_event'],
-				'generateLead'   => ! empty( $settings['ga4_generate_lead'] ) ? 1 : 0,
-				'requireConsent' => ! empty( $settings['ga4_require_consent'] ) ? 1 : 0,
-				'humanOnly'      => ! empty( $settings['ga4_human_only'] ) ? 1 : 0,
-				'minDwell'       => absint( $settings['ga4_min_dwell'] ),
-				'oncePerView'    => ! empty( $settings['ga4_once_per_view'] ) ? 1 : 0,
-				'stats'          => ! empty( $settings['stats_enabled'] ) ? 1 : 0,
-				'statsUrl'       => esc_url_raw( rest_url( 'dsgn-scc/v1/click' ) ),
-				'postId'         => (int) get_queried_object_id(),
-				'offsetBody'     => ! empty( $settings['offset_body'] ) ? 1 : 0,
-				'locationId'     => $location['id'],
-				'locationLabel'  => $location['ga_label'],
-				'phoneNumber'    => $location['tel'],
-			)
+			'window.dsgnSccData = ' . wp_json_encode( $data ) . ';',
+			'before'
 		);
 	}
 
@@ -103,6 +115,15 @@ class DSGN_SCC_Frontend {
 		}
 
 		$css .= '}';
+
+		if ( '' !== trim( (string) $settings['custom_css'] ) ) {
+			/*
+			 * Bewusst ohne Media Query: so laesst sich auch der Breakpoint
+			 * selbst ueberschreiben. Beim Speichern wurde bereits auf Tags
+			 * und ausgeglichene Klammern geprueft.
+			 */
+			$css .= "\n" . $settings['custom_css'];
+		}
 
 		return $css;
 	}

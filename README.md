@@ -92,6 +92,24 @@ erhöht nur einen Zähler, liest nichts aus und prüft die Standort-ID. Die
 Ratenbegrenzung nutzt einen gesalzenen Hash der IP in einem Transient; die
 Adresse selbst wird nicht gespeichert.
 
+## Eigenes CSS
+
+Feld unter Einstellungen → Darstellung. Wird nach dem Plugin-Stylesheet
+ausgegeben und nur geladen, wenn der Button auf der Seite erscheint.
+
+Variablen: `--dsgn-scc-font-size`, `--dsgn-scc-meta-font-size`,
+`--dsgn-scc-bg`, `--dsgn-scc-fg`, `--dsgn-scc-z`, `--dsgn-scc-height`.
+
+Klassen: `.dsgn-scc`, `.dsgn-scc__link`, `.dsgn-scc__icon`, `.dsgn-scc__label`,
+`.dsgn-scc__meta`, `.dsgn-scc__location`, `.dsgn-scc__number`.
+
+Speichern setzt die Berechtigung `unfiltered_html` voraus. HTML-Tags werden
+entfernt, unausgeglichene geschweifte Klammern führen zur Ablehnung mit
+Hinweis — der bisherige Wert bleibt dann erhalten.
+
+Die Ausgabe steht bewusst außerhalb der Media Query, damit sich auch der
+Breakpoint überschreiben lässt.
+
 ## Call Tracking / dynamische Rufnummern
 
 Der Button ist für Skripte zur dynamischen Rufnummernzuweisung vorbereitet:

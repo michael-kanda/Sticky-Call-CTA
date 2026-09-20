@@ -155,6 +155,8 @@ class DSGN_SCC_Settings {
 		$event              = isset( $input['ga4_event'] ) ? sanitize_key( $input['ga4_event'] ) : '';
 		$clean['ga4_event'] = '' !== $event ? substr( $event, 0, 40 ) : $defaults['ga4_event'];
 
+		$clean['custom_css'] = self::sanitize_css( isset( $input['custom_css'] ) ? $input['custom_css'] : '' );
+
 		$clean['locations'] = self::sanitize_locations( isset( $input['locations'] ) ? $input['locations'] : array() );
 		$clean['rules']     = self::sanitize_rules( isset( $input['rules'] ) ? $input['rules'] : array(), $clean['locations'] );
 
@@ -274,6 +276,56 @@ class DSGN_SCC_Settings {
 	}
 
 	/**
+	 * Eigenes CSS pruefen.
+	 *
+	 * CSS darf nicht durch die ueblichen Textfilter, die wuerden Zeichen wie
+	 * > zerstoeren. Entfernt werden deshalb gezielt HTML-Tags, damit sich der
+	 * style-Block nicht verlassen laesst. Bei unausgeglichenen Klammern wird
+	 * verworfen und der bisherige Wert behalten, sonst zerschiesst ein
+	 * Tippfehler die Darstellung der Seite.
+	 *
+	 * @param string $css Eingabe.
+	 * @return string
+	 */
+	protected static function sanitize_css( $css ) {
+		$css = (string) $css;
+
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			$stored = get_option( DSGN_SCC_OPTION, array() );
+
+			add_settings_error(
+				DSGN_SCC_OPTION,
+				'dsgn_scc_css_capability',
+				__( 'Eigenes CSS wurde nicht gespeichert: dafür fehlt die Berechtigung.', 'dsgn-sticky-call' )
+			);
+
+			return isset( $stored['custom_css'] ) ? (string) $stored['custom_css'] : '';
+		}
+
+		$css = wp_strip_all_tags( $css );
+		$css = str_ireplace( array( '<style', '</style', '<script', '</script' ), '', $css );
+		$css = trim( $css );
+
+		if ( strlen( $css ) > 20000 ) {
+			$css = substr( $css, 0, 20000 );
+		}
+
+		if ( substr_count( $css, '{' ) !== substr_count( $css, '}' ) ) {
+			$stored = get_option( DSGN_SCC_OPTION, array() );
+
+			add_settings_error(
+				DSGN_SCC_OPTION,
+				'dsgn_scc_css_braces',
+				__( 'Eigenes CSS wurde nicht gespeichert: die geschweiften Klammern sind nicht ausgeglichen.', 'dsgn-sticky-call' )
+			);
+
+			return isset( $stored['custom_css'] ) ? (string) $stored['custom_css'] : '';
+		}
+
+		return $css;
+	}
+
+	/**
 	 * Hex-Farbe prüfen.
 	 *
 	 * @param string $value    Eingabe.
@@ -302,6 +354,14 @@ class DSGN_SCC_Settings {
 		?>
 		<div class="wrap dsgn-scc-settings">
 			<h1><?php echo esc_html__( 'Sticky Call CTA', 'dsgn-sticky-call' ); ?></h1>
+
+			<?php if ( ! empty( $settings['stats_enabled'] ) && ! DSGN_SCC_Stats::table_exists() ) : ?>
+				<div class="notice notice-error">
+					<p>
+						<?php echo esc_html__( 'Die Tabelle für die Klickzählung fehlt, es wird nichts gezählt. Plugin einmal deaktivieren und wieder aktivieren, dann wird sie neu angelegt.', 'dsgn-sticky-call' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
 
 			<form method="post" action="options.php">
 				<?php settings_fields( 'dsgn_scc_options' ); ?>
@@ -487,6 +547,27 @@ class DSGN_SCC_Settings {
 						<td>
 							<input type="number" min="1" step="1" id="dsgn-scc-zindex" name="<?php echo esc_attr( $name ); ?>[z_index]" value="<?php echo esc_attr( $settings['z_index'] ); ?>" class="small-text" />
 							<p class="description"><?php echo esc_html__( 'Bewusst unter dem Consent-Layer halten, damit der Cookie-Banner bedienbar bleibt.', 'dsgn-sticky-call' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="dsgn-scc-css"><?php echo esc_html__( 'Eigenes CSS', 'dsgn-sticky-call' ); ?></label></th>
+						<td>
+							<textarea id="dsgn-scc-css" name="<?php echo esc_attr( $name ); ?>[custom_css]" rows="8" class="large-text code" spellcheck="false"><?php echo esc_textarea( $settings['custom_css'] ); ?></textarea>
+							<p class="description">
+								<?php echo esc_html__( 'Wird nach dem Plugin-CSS ausgegeben und nur geladen, wenn der Button auf der Seite erscheint. Für Schriftgrößen genügen die Variablen:', 'dsgn-sticky-call' ); ?>
+							</p>
+							<pre class="dsgn-scc-code-sample">:root {
+	--dsgn-scc-font-size: 19px;
+	--dsgn-scc-meta-font-size: 15px;
+}
+
+.dsgn-scc .dsgn-scc__link {
+	min-height: 64px;
+	letter-spacing: 0.02em;
+}</pre>
+							<p class="description">
+								<?php echo esc_html__( 'Verfügbare Klassen: .dsgn-scc (Container), .dsgn-scc__link, .dsgn-scc__icon, .dsgn-scc__label, .dsgn-scc__meta, .dsgn-scc__location, .dsgn-scc__number. Weitere Variablen: --dsgn-scc-bg, --dsgn-scc-fg, --dsgn-scc-z, --dsgn-scc-height.', 'dsgn-sticky-call' ); ?>
+							</p>
 						</td>
 					</tr>
 					<tr>

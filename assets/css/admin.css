@@ -44,3 +44,14 @@
 .dsgn-scc-settings h2 {
 	margin-top: 32px;
 }
+
+.dsgn-scc-settings .dsgn-scc-code-sample {
+	max-width: 600px;
+	margin: 8px 0;
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border-left: 4px solid #c3c4c7;
+	color: #50575e;
+	font-size: 12px;
+	overflow-x: auto;
+}

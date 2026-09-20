@@ -4,7 +4,7 @@ Tags:              call, sticky, mobile, cta, analytics
 Requires at least: 6.5
 Tested up to:      7.1
 Requires PHP:      7.4
-Stable tag:        1.3.0
+Stable tag:        1.4.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,17 @@ location name. When a script replaces the link or that element, the plugin
 updates the aria-label accordingly and reports the number that was actually
 dialled in the GA4 event.
 
+= Custom CSS =
+
+The settings screen has a field for additional CSS, printed after the plugin
+stylesheet and only loaded on pages where the button appears. Font sizes are
+exposed as the variables `--dsgn-scc-font-size` and
+`--dsgn-scc-meta-font-size`, alongside `--dsgn-scc-bg`, `--dsgn-scc-fg`,
+`--dsgn-scc-z` and `--dsgn-scc-height`.
+
+Saving requires the `unfiltered_html` capability. Input with unbalanced braces
+is rejected so a typo cannot break the page layout.
+
 == Installation ==
 
 1. Upload the plugin folder to `/wp-content/plugins/` or install the ZIP file
@@ -107,6 +118,25 @@ Set the z-index in the settings below the value used by the consent layer.
 
 == Changelog ==
 
+= 1.4.0 =
+* Custom CSS field in the settings.
+* Font sizes are now CSS variables.
+
+= 1.3.2 =
+* Fixed: nothing was tracked at all. The button was printed after the footer
+  scripts, so the script did not find its element and stopped right away.
+  Initialisation now waits for DOMContentLoaded and the button is printed
+  before the footer scripts.
+
+= 1.3.1 =
+* Fixed: disabled tracking options behaved as if they were enabled, because
+  wp_localize_script() turns every value into a string and "0" is truthy in
+  JavaScript. Most visibly, the GA4 event was never sent unless the consent
+  variable was set, even with the consent option turned off.
+* Fixed: a missing counter table was never recreated once the version option
+  was set.
+* The settings screen now warns when the counter table is missing.
+
 = 1.3.0 =
 * Markup prepared for dynamic number insertion scripts.
 * The GA4 event now reports the number currently linked instead of the stored one.
@@ -130,6 +160,15 @@ Set the z-index in the settings below the value used by the consent layer.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Adds a custom CSS field.
+
+= 1.3.2 =
+Fixes click tracking, which did not work at all in earlier versions.
+
+= 1.3.1 =
+Bug fix release, recommended for every installation.
 
 = 1.3.0 =
 Prepares the button for call tracking scripts.

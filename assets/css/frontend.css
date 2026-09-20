@@ -26,7 +26,7 @@
 	padding-bottom: calc( 12px + env( safe-area-inset-bottom, 0px ) );
 	background: var( --dsgn-scc-bg, #1a73e8 );
 	color: var( --dsgn-scc-fg, #ffffff );
-	font-size: 17px;
+	font-size: var( --dsgn-scc-font-size, 17px );
 	font-weight: 600;
 	line-height: 1.25;
 	text-align: center;
@@ -65,7 +65,7 @@
 }
 
 .dsgn-scc__meta {
-	font-size: 14px;
+	font-size: var( --dsgn-scc-meta-font-size, 14px );
 	font-weight: 400;
 	opacity: 0.92;
 }

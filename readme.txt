@@ -4,7 +4,7 @@ Tags:              call, sticky, mobile, cta, analytics
 Requires at least: 6.5
 Tested up to:      7.1
 Requires PHP:      7.4
-Stable tag:        1.4.0
+Stable tag:        1.5.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,19 @@ location name. When a script replaces the link or that element, the plugin
 updates the aria-label accordingly and reports the number that was actually
 dialled in the GA4 event.
 
+= Google Ads =
+
+The preferred route is to link the GA4 property to Google Ads and import the
+`phone_call_click` event as a conversion. No plugin configuration is needed for
+that.
+
+For setups without that link, the settings offer an optional conversion target
+in the form `AW-123456789/AbCdEfGhIjK`, with an optional value and currency.
+The conversion is only sent through `gtag()`, because without a loaded Google
+Ads tag there is no destination, and in a Tag Manager setup the conversion
+belongs into GTM. Do not use both routes at once, that counts every conversion
+twice.
+
 = Custom CSS =
 
 The settings screen has a field for additional CSS, printed after the plugin
@@ -118,6 +131,9 @@ Set the z-index in the settings below the value used by the consent layer.
 
 == Changelog ==
 
+= 1.5.0 =
+* Optional Google Ads conversion target with value and currency.
+
 = 1.4.0 =
 * Custom CSS field in the settings.
 * Font sizes are now CSS variables.
@@ -160,6 +176,9 @@ Set the z-index in the settings below the value used by the consent layer.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Adds an optional Google Ads conversion.
 
 = 1.4.0 =
 Adds a custom CSS field.

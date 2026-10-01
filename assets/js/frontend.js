@@ -193,6 +193,28 @@
 			}
 		}
 
+		/**
+		 * Conversion an Google Ads melden.
+		 *
+		 * Bewusst nur ueber gtag: ohne geladenen Ads-Tag gibt es kein Ziel,
+		 * und bei reinem Tag Manager gehoert die Conversion in den GTM, nicht
+		 * als dataLayer-Event mit dem Namen "conversion".
+		 */
+		function sendAdsConversion() {
+			if ( ! config.adsSendTo || 'function' !== typeof window.gtag ) {
+				return;
+			}
+
+			var payload = { send_to: config.adsSendTo };
+
+			if ( null !== config.adsValue && undefined !== config.adsValue ) {
+				payload.value = config.adsValue;
+				payload.currency = config.adsCurrency || 'EUR';
+			}
+
+			window.gtag( 'event', 'conversion', payload );
+		}
+
 		function sendGa4() {
 			if ( ! config.track || ! consentGranted() ) {
 				return;
@@ -237,6 +259,7 @@
 
 			countClick();
 			sendGa4();
+			sendAdsConversion();
 		}
 
 		if ( link ) {

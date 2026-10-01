@@ -155,6 +155,12 @@ class DSGN_SCC_Settings {
 		$event              = isset( $input['ga4_event'] ) ? sanitize_key( $input['ga4_event'] ) : '';
 		$clean['ga4_event'] = '' !== $event ? substr( $event, 0, 40 ) : $defaults['ga4_event'];
 
+		$clean['ads_send_to']  = self::sanitize_send_to( isset( $input['ads_send_to'] ) ? $input['ads_send_to'] : '' );
+		$clean['ads_currency'] = isset( $input['ads_currency'] ) ? strtoupper( substr( sanitize_key( $input['ads_currency'] ), 0, 3 ) ) : 'EUR';
+
+		$value              = isset( $input['ads_value'] ) ? str_replace( ',', '.', sanitize_text_field( $input['ads_value'] ) ) : '';
+		$clean['ads_value'] = is_numeric( $value ) ? (string) abs( (float) $value ) : '';
+
 		$clean['custom_css'] = self::sanitize_css( isset( $input['custom_css'] ) ? $input['custom_css'] : '' );
 
 		$clean['locations'] = self::sanitize_locations( isset( $input['locations'] ) ? $input['locations'] : array() );
@@ -273,6 +279,36 @@ class DSGN_SCC_Settings {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Conversion-Ziel fuer Google Ads pruefen.
+	 *
+	 * Erwartet wird das vollstaendige Ziel aus Conversion-ID und Label, also
+	 * AW-123456789/AbCdEfGhIjK. Ein unvollstaendiger Wert wuerde stillschweigend
+	 * nichts messen, deshalb wird er abgelehnt statt gespeichert.
+	 *
+	 * @param string $value Eingabe.
+	 * @return string
+	 */
+	protected static function sanitize_send_to( $value ) {
+		$value = trim( sanitize_text_field( $value ) );
+
+		if ( '' === $value ) {
+			return '';
+		}
+
+		if ( ! preg_match( '#^AW-[0-9]{6,}/[A-Za-z0-9_-]{6,}$#', $value ) ) {
+			add_settings_error(
+				DSGN_SCC_OPTION,
+				'dsgn_scc_ads_send_to',
+				__( 'Das Google-Ads-Conversion-Ziel wurde nicht gespeichert. Erwartet wird Conversion-ID und Label, zum Beispiel AW-123456789/AbCdEfGhIjK.', 'dsgn-sticky-call' )
+			);
+
+			return '';
+		}
+
+		return $value;
 	}
 
 	/**
@@ -639,6 +675,28 @@ class DSGN_SCC_Settings {
 								<?php echo esc_html__( 'Pro Seitenaufruf höchstens ein Event senden', 'dsgn-sticky-call' ); ?>
 							</label>
 							<p class="description"><?php echo esc_html__( 'Verhindert doppelte Zählung bei Doppeltaps oder wenn nach dem Anruf zurück zur Seite gewechselt wird.', 'dsgn-sticky-call' ); ?></p>
+						</td>
+					</tr>
+				</table>
+
+				<h2><?php echo esc_html__( 'Google Ads Conversion', 'dsgn-sticky-call' ); ?></h2>
+				<p class="description">
+					<?php echo esc_html__( 'Optional und nur nötig, wenn die Conversion nicht als GA4-Ereignis nach Google Ads importiert wird. Beides gleichzeitig zählt doppelt.', 'dsgn-sticky-call' ); ?>
+				</p>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="dsgn-scc-ads"><?php echo esc_html__( 'Conversion-Ziel', 'dsgn-sticky-call' ); ?></label></th>
+						<td>
+							<input type="text" class="regular-text code" id="dsgn-scc-ads" name="<?php echo esc_attr( $name ); ?>[ads_send_to]" value="<?php echo esc_attr( $settings['ads_send_to'] ); ?>" placeholder="AW-123456789/AbCdEfGhIjK" />
+							<p class="description"><?php echo esc_html__( 'Conversion-ID und Label aus Google Ads, durch Schrägstrich getrennt. Leer lassen, um nichts zu senden. Voraussetzung ist, dass der Ads-Tag auf der Seite liegt – Site Kit lädt standardmäßig nur den GA4-Tag.', 'dsgn-sticky-call' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="dsgn-scc-ads-value"><?php echo esc_html__( 'Conversion-Wert', 'dsgn-sticky-call' ); ?></label></th>
+						<td>
+							<input type="text" id="dsgn-scc-ads-value" name="<?php echo esc_attr( $name ); ?>[ads_value]" value="<?php echo esc_attr( $settings['ads_value'] ); ?>" class="small-text" placeholder="0" />
+							<input type="text" name="<?php echo esc_attr( $name ); ?>[ads_currency]" value="<?php echo esc_attr( $settings['ads_currency'] ); ?>" class="small-text" maxlength="3" />
+							<p class="description"><?php echo esc_html__( 'Optionaler Schätzwert eines Anrufs. Smart Bidding arbeitet damit deutlich besser als mit wertlosen Conversions. Leer lassen, wenn kein Wert bekannt ist.', 'dsgn-sticky-call' ); ?></p>
 						</td>
 					</tr>
 				</table>

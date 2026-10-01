@@ -67,6 +67,23 @@ aktivieren und das Cookie-Tool bei Einwilligung
 `window.dsgnSccConsentGranted = true` setzen lassen. Der Anruf selbst
 funktioniert davon unabhängig immer.
 
+### Google Ads
+
+Bevorzugt: GA4-Property mit Ads verknüpfen und `phone_call_click` als
+Conversion importieren — dafür ist am Plugin nichts einzustellen.
+
+Alternativ Feld „Conversion-Ziel“ in den Einstellungen, Format
+`AW-123456789/AbCdEfGhIjK`, optional mit Wert und Währung. Gesendet wird nur
+über `gtag()`; der Ads-Tag muss auf der Seite liegen, Site Kit lädt
+standardmäßig nur GA4.
+
+**Nie beides gleichzeitig** — Import und direkter Versand zählen doppelt und
+verzerren Smart Bidding.
+
+Für Conversions nach Gesprächsdauer: Anrufweiterleitungsnummern in Google Ads,
+`phone_conversion_number` mit der Klasse `dsgn-scc__number`. Gilt nur für
+Besucher aus Anzeigen.
+
 ### Filterung automatisierter Klicks
 
 Vor dem Senden wird geprüft: `event.isTrusted`, eine vorausgegangene echte

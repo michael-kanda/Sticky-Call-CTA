@@ -166,12 +166,23 @@ class DSGN_SCC_Settings {
 		$clean['locations'] = self::sanitize_locations( isset( $input['locations'] ) ? $input['locations'] : array() );
 		$clean['rules']     = self::sanitize_rules( isset( $input['rules'] ) ? $input['rules'] : array(), $clean['locations'] );
 
-		$default_location           = isset( $input['default_location'] ) ? sanitize_key( $input['default_location'] ) : '';
-		$clean['default_location']  = self::location_exists( $default_location, $clean['locations'] ) ? $default_location : '';
+		/*
+		 * 'none' ist die bewusste Wahl "kein Button ohne Zuordnung" und wird
+		 * unveraendert gespeichert. Nur ein fehlender oder nicht mehr
+		 * vorhandener Standort faellt auf den ersten Standort zurueck, etwa
+		 * beim ersten Speichern oder nach dem Loeschen des Standardstandorts.
+		 */
+		$default_location = isset( $input['default_location'] ) ? sanitize_key( $input['default_location'] ) : '';
 
-		if ( '' === $clean['default_location'] && ! empty( $clean['locations'] ) ) {
+		if ( 'none' === $default_location ) {
+			$clean['default_location'] = 'none';
+		} elseif ( self::location_exists( $default_location, $clean['locations'] ) ) {
+			$clean['default_location'] = $default_location;
+		} elseif ( ! empty( $clean['locations'] ) ) {
 			$first                     = reset( $clean['locations'] );
 			$clean['default_location'] = $first['id'];
+		} else {
+			$clean['default_location'] = '';
 		}
 
 		return $clean;
@@ -292,23 +303,58 @@ class DSGN_SCC_Settings {
 	 * @return string
 	 */
 	protected static function sanitize_send_to( $value ) {
-		$value = trim( sanitize_text_field( $value ) );
+		$value = is_scalar( $value ) ? trim( (string) $value ) : '';
 
 		if ( '' === $value ) {
 			return '';
 		}
 
-		if ( ! preg_match( '#^AW-[0-9]{6,}/[A-Za-z0-9_-]{6,}$#', $value ) ) {
-			add_settings_error(
-				DSGN_SCC_OPTION,
-				'dsgn_scc_ads_send_to',
-				__( 'Das Google-Ads-Conversion-Ziel wurde nicht gespeichert. Erwartet wird Conversion-ID und Label, zum Beispiel AW-123456789/AbCdEfGhIjK.', 'dsgn-sticky-call' )
-			);
+		$normalized = self::normalize_send_to( $value );
 
-			return '';
+		if ( '' !== $normalized ) {
+			return $normalized;
 		}
 
-		return $value;
+		if ( preg_match( '#AW-?[0-9]{6,}#i', $value ) ) {
+			$message = __( 'Das Google-Ads-Conversion-Ziel wurde nicht gespeichert: es fehlt das Conversion-Label. Erwartet wird Conversion-ID und Label, durch Schrägstrich getrennt, zum Beispiel AW-123456789/AbCdEfGhIjK.', 'dsgn-sticky-call' );
+		} else {
+			$message = __( 'Das Google-Ads-Conversion-Ziel wurde nicht gespeichert. Erwartet wird Conversion-ID und Label, zum Beispiel AW-123456789/AbCdEfGhIjK.', 'dsgn-sticky-call' );
+		}
+
+		add_settings_error( DSGN_SCC_OPTION, 'dsgn_scc_ads_send_to', $message );
+
+		/*
+		 * Bisherigen Wert behalten statt leeren: ein Tippfehler soll keine
+		 * funktionierende Conversion-Messung abschalten.
+		 */
+		$stored = get_option( DSGN_SCC_OPTION, array() );
+
+		return ( is_array( $stored ) && isset( $stored['ads_send_to'] ) ) ? (string) $stored['ads_send_to'] : '';
+	}
+
+	/**
+	 * Conversion-Ziel aus einer Eingabe herausloesen.
+	 *
+	 * Toleriert, was beim Kopieren aus Google Ads typischerweise mitkommt:
+	 * Leerzeichen, Anfuehrungszeichen, kleingeschriebenes "aw-", fehlendes
+	 * "AW-" vor der ID oder gleich das ganze gtag-Snippet. Das Ergebnis
+	 * besteht nur aus den gepruften Teilen und ist damit unbedenklich.
+	 *
+	 * @param string $value Eingabe.
+	 * @return string AW-ID/Label oder leerer String.
+	 */
+	public static function normalize_send_to( $value ) {
+		$value = preg_replace( '#[\s\'"`]+#u', '', (string) $value );
+
+		if ( preg_match( '#AW-?([0-9]{6,})/([A-Za-z0-9_-]+)#i', $value, $match ) ) {
+			return 'AW-' . $match[1] . '/' . $match[2];
+		}
+
+		if ( preg_match( '#^([0-9]{6,})/([A-Za-z0-9_-]+)$#', $value, $match ) ) {
+			return 'AW-' . $match[1] . '/' . $match[2];
+		}
+
+		return '';
 	}
 
 	/**
@@ -515,15 +561,21 @@ class DSGN_SCC_Settings {
 					<tr>
 						<th scope="row"><label for="dsgn-scc-default"><?php echo esc_html__( 'Standardstandort', 'dsgn-sticky-call' ); ?></label></th>
 						<td>
-							<select id="dsgn-scc-default" name="<?php echo esc_attr( $name ); ?>[default_location]">
-								<option value=""><?php echo esc_html__( '— kein Button ohne Zuordnung —', 'dsgn-sticky-call' ); ?></option>
-								<?php foreach ( $settings['locations'] as $location ) : ?>
-									<option value="<?php echo esc_attr( $location['id'] ); ?>" <?php selected( $settings['default_location'], $location['id'] ); ?>>
-										<?php echo esc_html( $location['label'] ); ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
-							<p class="description"><?php echo esc_html__( 'Greift, wenn weder an der Seite noch über eine URL-Regel etwas zugeordnet ist.', 'dsgn-sticky-call' ); ?></p>
+							<?php if ( empty( $settings['locations'] ) ) : ?>
+								<?php /* Ohne gespeicherte Standorte gibt es nichts zu waehlen; beim ersten Speichern wird der erste Standort Standard. */ ?>
+								<input type="hidden" name="<?php echo esc_attr( $name ); ?>[default_location]" value="" />
+								<p class="description"><?php echo esc_html__( 'Wählbar, sobald Standorte gespeichert sind. Bis dahin wird der erste Standort zum Standard.', 'dsgn-sticky-call' ); ?></p>
+							<?php else : ?>
+								<select id="dsgn-scc-default" name="<?php echo esc_attr( $name ); ?>[default_location]">
+									<option value="none" <?php selected( $settings['default_location'], 'none' ); ?>><?php echo esc_html__( '— kein Button ohne Zuordnung —', 'dsgn-sticky-call' ); ?></option>
+									<?php foreach ( $settings['locations'] as $location ) : ?>
+										<option value="<?php echo esc_attr( $location['id'] ); ?>" <?php selected( $settings['default_location'], $location['id'] ); ?>>
+											<?php echo esc_html( $location['label'] ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php echo esc_html__( 'Greift, wenn weder an der Seite noch über eine URL-Regel etwas zugeordnet ist. Mit „kein Button ohne Zuordnung“ erscheint der Button nur auf Seiten mit eigener Auswahl oder passender URL-Regel.', 'dsgn-sticky-call' ); ?></p>
+							<?php endif; ?>
 						</td>
 					</tr>
 				</table>

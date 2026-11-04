@@ -92,6 +92,10 @@ class DSGN_SCC_Resolver {
 			}
 		}
 
+		if ( 'none' === $settings['default_location'] ) {
+			return false;
+		}
+
 		$location = dsgn_scc_get_location( (string) $settings['default_location'], $settings );
 
 		if ( $location ) {

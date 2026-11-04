@@ -4,7 +4,7 @@ Tags:              call, sticky, mobile, cta, analytics
 Requires at least: 6.5
 Tested up to:      7.1
 Requires PHP:      7.4
-Stable tag:        1.5.0
+Stable tag:        1.5.1
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -130,6 +130,10 @@ bots.
 Set the z-index in the settings below the value used by the consent layer.
 
 == Changelog ==
+
+= 1.5.1 =
+* Fix: "No button without assignment" as default location is now saved instead of being replaced by the first location.
+* Fix: Google Ads conversion target is normalised (spaces, quotes, lowercase "aw-", missing "AW-" prefix, pasted gtag snippet). An invalid entry keeps the previously saved value and shows a clearer error.
 
 = 1.5.0 =
 * Optional Google Ads conversion target with value and currency.
